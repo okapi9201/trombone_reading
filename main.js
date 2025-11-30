@@ -27,13 +27,21 @@ let currentNoteVF = "";
 let correctGermanName = "";
 let correctPositions = [];
 
-// ★ 追加: 現在選択されている難易度設定を保持する変数
 let currentQuizSetting = null;
 
 // =============== [ データ定義 ] ===============
 
 // VexFlowキーと正解の音名・ポジションを紐付けたデータ
+// ★ F2(五線の下の加線4本)から F4(五線の一番上)までの音域を網羅
 const notePositionData = {
+    // --- ★ F2から追加 ---
+    "f/2": { german: "F", positions: [6], enharmonics: [] },
+    "f#/2": { german: "Fis", positions: [5], enharmonics: ["Ges"] },
+    "gb/2": { german: "Ges", positions: [5], enharmonics: ["Fis"] },
+    "g/2": { german: "G", positions: [4], enharmonics: [] },
+    "g#/2": { german: "Gis", positions: [3], enharmonics: ["As"] },
+    "ab/2": { german: "As", positions: [3], enharmonics: ["Gis"] },
+    "a/2": { german: "A", positions: [2], enharmonics: [] },
     "bb/2": { german: "B", positions: [1], enharmonics: ["Ais"] },
     "b/2": { german: "H", positions: [7], enharmonics: [] },
     "c/3": { german: "C", positions: [6], enharmonics: [] },
@@ -50,25 +58,43 @@ const notePositionData = {
     "g#/3": { german: "Gis", positions: [3], enharmonics: ["As"] },
     "ab/3": { german: "As", positions: [3], enharmonics: ["Gis"] },
     "a/3": { german: "A", positions: [2], enharmonics: [] },
-    "bb/3": { german: "B", positions: [1], enharmonics: ["Ais"] }
+    "bb/3": { german: "B", positions: [1], enharmonics: ["Ais"] }, 
+    "c/4": { german: "C", positions: [3], enharmonics: [] }, 
+    "c#/4": { german: "Cis", positions: [2], enharmonics: ["Des"] },
+    "db/4": { german: "Des", positions: [2], enharmonics: ["Cis"] },
+    "d/4": { german: "D", positions: [1], enharmonics: [] },
+    "d#/4": { german: "Dis", positions: [3], enharmonics: ["Es"] },
+    "eb/4": { german: "Es", positions: [3], enharmonics: ["Dis"] },
+    "e/4": { german: "E", positions: [2], enharmonics: [] }, 
+    "f/4": { german: "F", positions: [1], enharmonics: [] } 
+    // ----------------------
 };
 
+// 難易度設定から出題キーを決定するために、全キーリストを再生成する
 const allVexFlowKeys = Object.keys(notePositionData);
 const allGermanNames = [...new Set(Object.values(notePositionData).map(d => d.german).concat(["Ais"]))];
 const allPositions = [1, 2, 3, 4, 5, 6, 7];
 
-// ★ 難易度ごとの詳細設定 (allowEnharmonics: false で固定)
+// ★ 難易度ごとの詳細設定 (難易度2を追加)
 const quizSettings = {
-    "難易度1 (60s)": { 
+    // 難易度1 (既存) の設定
+    "難易度1 (Bb2-Bb3)": { 
         time: 60, 
-        allowEnharmonics: false, // 異名同音を不正解に固定
+        allowEnharmonics: false, 
         pitchRange: ["bb/2", "bb/3"] 
+    },
+    // ★ 難易度2 (新規) の設定
+    "難易度2 (F2-F4)": { 
+        time: 60, 
+        allowEnharmonics: false, 
+        pitchRange: ["f/2", "f/4"] 
     }
 };
 
-// ★ 難易度設定 (プルダウン表示用)
+// 難易度設定 (プルダウン表示用)
 const difficultySettings = {
-    "難易度1 (60s)": "難易度1 (60s)"
+    "難易度1 (Bb2-Bb3)": "難易度1 (Bb2-Bb3)", // 難易度1の表示名を明確化
+    "難易度2 (F2-F4)": "難易度2 (F2-F4)" // ★ 難易度2を追加
 };
 
 
@@ -77,7 +103,6 @@ const difficultySettings = {
 document.addEventListener('DOMContentLoaded', () => {
     document.getElementById("decisionBtn").onclick = checkDecision;
     
-    // リトライ時は currentQuizSetting を参照するように修正
     document.getElementById("retryBtn").onclick = () => startQuiz(currentQuizSetting.key); 
     document.getElementById("titleBtn").onclick = resetQuiz; 
     
@@ -85,9 +110,7 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 
-// ★ 難易度のキー名を受け取るように修正
 function startQuiz(difficultyKey) { 
-    // 設定オブジェクトを取得し、変数に保持
     currentQuizSetting = {
         key: difficultyKey,
         ...quizSettings[difficultyKey]
@@ -95,7 +118,6 @@ function startQuiz(difficultyKey) {
 
     if (timerInterval) clearInterval(timerInterval);
     
-    // 選択された難易度設定から時間を取得
     totalTime = currentQuizSetting.time; 
     currentQuestionCount = 0;
     currentTime = totalTime;
@@ -133,23 +155,45 @@ function updateTimer() {
 }
 
 function nextQuestion() {
-    if (!quizInProgress || currentTime <= 0) return;
+    if (!quizInProgress || currentTime <= 0) return;
 
     selectedNoteName = null;
     selectedPosition = null;
-    document.getElementById("result").textContent = "";
-    document.getElementById("decisionBtn").disabled = true;
+    document.getElementById("result").textContent = "";
+    document.getElementById("decisionBtn").disabled = true;
     
-    currentNoteVF = allVexFlowKeys[Math.floor(Math.random() * allVexFlowKeys.length)];
-    const noteData = notePositionData[currentNoteVF];
+    // 1. 範囲の開始と終了のVexFlowキーのインデックスを取得
+    const startIndex = allVexFlowKeys.indexOf(currentQuizSetting.pitchRange[0]);
+    const endIndex = allVexFlowKeys.indexOf(currentQuizSetting.pitchRange[1]);
+
+    let availableKeys;
+    
+    // 2. インデックスが見つからない、または順序がおかしい場合はエラー処理 (フォールバックとして全キーを使用)
+    if (startIndex === -1 || endIndex === -1 || startIndex > endIndex) {
+        console.error("Error: Pitch range keys not found or ordered incorrectly in allVexFlowKeys. Using all keys as fallback.");
+        availableKeys = allVexFlowKeys; 
+    } else {
+        // 3. allVexFlowKeysが音高順であることを前提に、範囲内の音符リストを切り出し
+        //    これにより、文字列比較の不安定さを回避し、F2からF4までの全音符を均等に出題する
+        availableKeys = allVexFlowKeys.slice(startIndex, endIndex + 1);
+    }
+    
+    // availableKeysが空でないことを確認してからランダム選択
+    if (availableKeys.length === 0) {
+        console.error("Error: No available keys found in the specified range.");
+        return;
+    }
+
+    currentNoteVF = availableKeys[Math.floor(Math.random() * availableKeys.length)];
+    const noteData = notePositionData[currentNoteVF];
     
     correctGermanName = noteData.german;
     correctPositions = noteData.positions;
 
-    drawNote(currentNoteVF);
+    drawNote(currentNoteVF);
 
     // 異名同音は不正解なので、enharmonicsは空配列として選択肢生成に渡す
-    renderNoteChoices(correctGermanName, []); 
+    renderNoteChoices(correctGermanName, []); 
     renderPositionChoices(correctPositions);
 
     document.getElementById("nextBtn").style.display = 'none';
@@ -160,9 +204,7 @@ function nextQuestion() {
 function renderNoteChoices(correctName, enharmonics) {
     const noteChoicesDiv = document.getElementById("noteChoices");
     noteChoicesDiv.innerHTML = "<h4>音名選択</h4>";
-    noteChoicesDiv.style.border = '1px solid #ccc';
     
-    // 異名同音は不正解なので、選択肢プールには主音名のみを入れる
     const allowedNames = [correctName]; 
     
     const uniqueWrongNames = allGermanNames.filter(name => !allowedNames.includes(name));
@@ -180,11 +222,11 @@ function renderNoteChoices(correctName, enharmonics) {
 function renderPositionChoices(correctPos) {
     const positionChoicesDiv = document.getElementById("positionChoices");
     positionChoicesDiv.innerHTML = "<h4>ポジション選択</h4>";
-    positionChoicesDiv.style.border = '1px solid #ccc';
     
     const uniqueWrongPositions = allPositions.filter(pos => !correctPos.includes(pos));
     const wrongChoices = shuffle(uniqueWrongPositions).slice(0, 4 - Math.min(4, correctPos.length));
     const posOptionSet = new Set();
+    // 正しいポジションから1つ、不正解の選択肢から残りの数をランダムに選ぶ
     posOptionSet.add(correctPos[Math.floor(Math.random() * correctPos.length)]);
     wrongChoices.forEach(pos => posOptionSet.add(pos));
     
@@ -243,7 +285,8 @@ function drawNote(noteVF) {
     div.innerHTML = ""; 
 
     const renderer = new VF.Renderer(div, VF.Renderer.Backends.SVG);
-    renderer.resize(300, 150);
+    // レンダラーサイズはスマホ対応を考慮して調整
+    renderer.resize(300, 150); 
     const context = renderer.getContext();
 
     const stave = new VF.Stave(10, 40, 280);
@@ -291,7 +334,7 @@ function checkDecision() {
     document.getElementById("decisionBtn").disabled = true;
     
     const currentNoteData = notePositionData[currentNoteVF];
-    // ★ 異名同音を無視し、出題された音符の主音名のみを正解リストとする
+    // 異名同音を無視し、出題された音符の主音名のみを正解リストとする
     const correctNames = [currentNoteData.german]; 
     
     const isNoteCorrect = correctNames.includes(selectedNoteName);
@@ -402,7 +445,7 @@ function resetQuiz() {
     clearInterval(timerInterval);
     currentQuestionCount = 0;
     quizInProgress = false;
-    currentQuizSetting = null; // リセット時に設定もクリア
+    currentQuizSetting = null; 
     
     document.getElementById("appTitle").textContent = "Trombone Reading Training";
     document.getElementById("timerDisplay").innerHTML = ""; 
@@ -412,8 +455,6 @@ function resetQuiz() {
     
     document.getElementById("noteChoices").innerHTML = "";
     document.getElementById("positionChoices").innerHTML = "";
-    document.getElementById("noteChoices").style.border = 'none';
-    document.getElementById("positionChoices").style.border = 'none';
     
     document.getElementById("finalResultDisplay").style.display = 'none';
     document.getElementById("resultButtons").style.display = 'none';
@@ -422,10 +463,9 @@ function resetQuiz() {
     const select = document.createElement("select");
     select.id = "difficultySelect";
     
-    // 難易度設定からプルダウンを生成
     for (const [key, value] of Object.entries(difficultySettings)) {
         const option = document.createElement("option");
-        option.value = value; // キー名 ("難易度1 (60s)") が入る
+        option.value = value;
         option.textContent = key;
         select.appendChild(option);
     }
@@ -439,7 +479,6 @@ function resetQuiz() {
     nextBtn.style.display = 'block';
     
     nextBtn.onclick = () => {
-        // プルダウンからキー名を取得して startQuiz に渡す
         const difficultyKey = document.getElementById("difficultySelect").value;
         startQuiz(difficultyKey); 
     }; 
