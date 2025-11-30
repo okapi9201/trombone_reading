@@ -14,31 +14,31 @@
         background-color: #f4f4f4;
     }
     
-    /* ------------------- ヘッダー情報 ------------------- */
+    /* ------------------- ヘッダー情報 (余白圧縮) ------------------- */
     #header-container {
-        padding: 10px 0;
-        margin-bottom: 20px;
+        padding: 5px 0; 
+        margin-bottom: 10px; 
         background-color: #ffffff;
         box-shadow: 0 2px 4px rgba(0,0,0,0.1);
     }
     h1 {
-        font-size: 1.2em;
+        font-size: 1.1em;
         color: #888;
         margin: 0;
-        padding: 5px 0;
+        padding: 3px 0;
     }
-    /* ★追加: タイマーとスコアを横並びにするためのコンテナ */
+    /* タイマーとスコアをまとめるコンテナ */
     #score-time-container {
         display: flex;
         justify-content: space-around;
-        padding: 5px 10px;
+        padding: 0 10px; 
     }
-    
+    /* タイマー・スコアのフォントサイズと余白を小さく */
     #timerDisplay, #questionCount { 
-        font-size: 1.5em; /* PCで少し小さく */
+        font-size: 1.3em;
         font-weight: normal;
-        margin: 5px 0;
-        flex-grow: 1; /* 均等幅にする */
+        margin: 3px 0;
+        flex-grow: 1;
     }
     #timerDisplay span, #questionCount span {
         font-weight: bold;
@@ -50,56 +50,51 @@
         display: flex;
         flex-direction: column;
         align-items: center;
-        padding: 10px;
+        padding: 5px; 
     }
     #score { 
-        margin-bottom: 30px; 
+        margin-bottom: 15px; /* 楽譜下のマージンを減らす */
         display: flex; 
         justify-content: center;
     }
     #result {
         text-align: center;
         font-weight: bold;
-        font-size: 1.3em;
-        margin-top: 15px;
-        min-height: 40px;
-    }
-    /* ★リザルト画面の表示エリア*/
-    #finalResultDisplay {
-        font-size: 1.5em;
-        margin: 20px 0;
-        line-height: 1.6;
-    }
-    #finalResultDisplay span {
-        font-weight: bold;
-        color: #00bcd4;
+        font-size: 1.1em; 
+        margin-top: 10px; 
+        min-height: 30px; 
     }
 
-    /* ------------------- 選択肢コンテナ ------------------- */
+    /* ------------------- 選択肢コンテナ (余白圧縮) ------------------- */
     #choices-container {
         width: 100%;
         max-width: 450px; 
         margin: 0 auto;
     }
     #choices-container > div { 
-        margin-bottom: 15px; 
-        padding: 10px; 
+        margin-bottom: 5px; /* グループ間のマージンを大幅に減らす */
+        padding: 5px; /* グループ内のパディングを減らす */
         border-radius: 5px; 
         text-align: center;
     }
+    /* 音名/ポジション選択のタイトル(h4)の余白を最小限に */
+    #choices-container h4 {
+        margin-top: 5px;
+        margin-bottom: 5px;
+        font-size: 1em;
+    }
 
-    /* ------------------- ボタン ------------------- */
+    /* ------------------- ボタン (余白圧縮) ------------------- */
     button { 
         font-size: 1em; 
-        margin: 5px; 
-        padding: 12px 20px; 
+        margin: 3px; /* ボタン間のマージンを減らす */
+        padding: 10px 15px; 
         cursor: pointer;
         border: 1px solid #ccc;
         border-radius: 5px;
         transition: background-color 0.2s;
         min-width: 100px;
-        /* ★選択肢ボタンを横に2つ並べるための設定 */
-        width: calc(50% - 10px); 
+        width: calc(50% - 6px); /* 2列表示のための幅 */
         box-sizing: border-box;
     }
     button.selected {
@@ -108,34 +103,43 @@
         border-color: #0d47a1;
     }
     #decisionBtn, #nextBtn { /* 決定/次へボタン */
-        font-size: 1.3em;
-        font-weight: bold;
-        padding: 15px 30px;
+        font-size: 1.2em;
+        padding: 12px 30px; 
         background-color: #4CAF50;
         color: white;
-        width: 90%; /* PCでも画面幅の90%を使用 */
+        width: 90%; 
         max-width: 450px;
+        margin-top: 10px;
     }
     #decisionBtn:disabled {
         background-color: #aaa;
         cursor: not-allowed;
     }
 
-    /* ★リザルトボタンのコンテナとスタイル */
+    /* ------------------- リザルト画面 (余白圧縮) ------------------- */
+    #finalResultDisplay {
+        font-size: 1.3em;
+        margin: 10px 0; /* リザルトエリアの上下マージンを減らす */
+        line-height: 1.4;
+    }
+    #finalResultDisplay span {
+        font-weight: bold;
+        color: #00bcd4;
+    }
     #resultButtons {
-        display: flex; /* 横並びにする */
+        display: flex;
         justify-content: center;
         width: 100%;
         max-width: 450px;
-        margin-top: 15px;
+        margin-top: 5px;
     }
     #resultButtons button {
         font-size: 1em;
         font-weight: bold;
-        padding: 15px 30px;
+        padding: 12px 20px;
         margin: 5px;
         min-width: 0;
-        width: calc(50% - 10px); /* 2つを均等に並べる */
+        width: calc(50% - 10px);
     }
     #retryBtn {
         background-color: #00bcd4;
@@ -146,44 +150,46 @@
         color: white;
     }
 
+
     /* ------------------- スマホ対応 (レスポンシブ) ------------------- */
     @media (max-width: 600px) {
         body {
-            font-size: 16px; /* スマホではフォントを小さめに */
+            font-size: 15px; /* ベースフォントをさらに小さく */
         }
         
+        /* タイマーとスコアの表示をさらに詰める */
         #timerDisplay, #questionCount {
-            font-size: 1.3em; 
+            font-size: 1.1em; 
         }
 
-        #choices-container {
-            max-width: 100%; 
+        #score-and-choices {
+            padding: 0;
         }
 
-        /* 選択肢ボタンのサイズ調整 */
+        /* 選択肢ボタンのサイズを維持しつつ余白を削る */
         button {
             font-size: 0.9em;
-            padding: 12px 0; /* 左右のパディングを減らす */
-            width: calc(50% - 10px); 
+            padding: 10px 0; 
+            width: calc(50% - 6px); 
         }
 
         /* 決定/次へボタンの調整 */
         #decisionBtn, #nextBtn {
-            width: 90%;
-            margin: 10px auto;
-            max-width: 90%;
-            font-size: 1.1em;
+            font-size: 1em;
+            padding: 10px 15px;
+            margin: 5px auto; /* 上下のマージンを減らす */
         }
 
         /* リザルトボタンの調整 */
         #resultButtons {
-            flex-direction: row; /* 横並び維持 */
+            flex-direction: row; 
             max-width: 90%;
         }
         #resultButtons button {
-            width: calc(50% - 10px);
-            font-size: 1em;
-            padding: 12px 10px;
+            font-size: 0.9em;
+            padding: 10px 10px;
+            margin: 3px;
+            width: calc(50% - 6px);
         }
     }
 </style>
